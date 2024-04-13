@@ -11,5 +11,4 @@ class SHotels(BaseModel):
     rooms_quantity: int
     image_id : int
 
-    # orm_mode поменял название во 2 версии Pydantic
     model_config = ConfigDict(from_attributes=True)
