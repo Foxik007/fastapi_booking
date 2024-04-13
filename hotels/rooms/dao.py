@@ -8,6 +8,7 @@ from dao.base import BaseDAO
 from database import async_session_maker
 from hotels.models import Hotels
 from hotels.rooms.models import Rooms
+from hotels.rooms.schemas import sAvailableRoom
 
 
 class RoomsDAO(BaseDAO):
@@ -15,10 +16,10 @@ class RoomsDAO(BaseDAO):
 
     @classmethod
     async def get_rooms_by_hotel(cls,
-                                 hotel_id:str,
+                                 hotel_id:int,
                                  date_from:date,
                                  date_to:date,
-                                 ):
+                                 ) -> list[sAvailableRoom]:
         async with async_session_maker() as session:
             r = aliased(Rooms)
             b = aliased(Bookings)
@@ -26,8 +27,7 @@ class RoomsDAO(BaseDAO):
 
             relbook = (select(
                 r.id,
-                func.count().label(''
-                                   ''))
+                func.count().label('booked_rooms'))
                 .select_from(r)
                 .join(b,r.id == b.room_id)
                 .filter(b.date_from <= date_to,
@@ -52,7 +52,7 @@ class RoomsDAO(BaseDAO):
                 ((date_to - date_from).days * r.price).label('total_cost'),
                 (r.quantity - func.coalesce(relbook.c.booked_rooms,0)).label('rooms_left'))
                 .select_from(relhot)
-                .join(r,relhot.c.id == r.hotel_id)
+                .join(r, relhot.c.id == r.hotel_id)
                 .join(relbook,r.id == relbook.c.id,isouter=True)
                     )
             res = await session.execute(query)
