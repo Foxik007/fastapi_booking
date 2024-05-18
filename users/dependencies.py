@@ -1,14 +1,14 @@
 from datetime import datetime
 
 from fastapi import Request, HTTPException, Depends
-from jose import jwt,JWTError,ExpiredSignatureError
+from jose import jwt, JWTError, ExpiredSignatureError
 
 from config import settings
 from exception import TokenExpired
 from users.dao import UsersDAO
 
 
-def get_token(request:Request):
+def get_token(request: Request):
     token = request.cookies.get('booking_access_token')
     if not token:
         raise HTTPException(status_code=401)

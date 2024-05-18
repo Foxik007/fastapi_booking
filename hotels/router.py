@@ -1,5 +1,8 @@
+import asyncio
 from datetime import date
 from fastapi import APIRouter
+from fastapi_cache.decorator import cache
+
 from hotels.dao import HotelDAO
 
 router = APIRouter(
@@ -9,7 +12,9 @@ router = APIRouter(
 
 
 @router.get('/location')
+# @cache(expire=20)
 async def get_hotels(location: str, date_from: date, date_to: date):
+    # await asyncio.sleep(3)
     return await HotelDAO.find_available_hotels(location, date_from, date_to)
 
 

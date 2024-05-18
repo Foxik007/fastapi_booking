@@ -24,7 +24,7 @@ class RoomsDAO(BaseDAO):
             r = aliased(Rooms)
             b = aliased(Bookings)
             h = aliased(Hotels)
-
+            #Найдем занятые комнаты на даты
             relbook = (select(
                 r.id,
                 func.count().label('booked_rooms'))
@@ -37,8 +37,8 @@ class RoomsDAO(BaseDAO):
                       .select_from(h)
                       .filter(h.id == hotel_id)
                       ).cte('rh')
-            print('RB SQL')
-            print(relbook.compile(compile_kwargs={'literal_binds':True}))
+            # print('RB SQL')
+            # print(relbook.compile(compile_kwargs={'literal_binds':True}))
 
             query = (select(
                 relhot.c.id.label('hotel_id'),
@@ -55,5 +55,6 @@ class RoomsDAO(BaseDAO):
                 .join(r, relhot.c.id == r.hotel_id)
                 .join(relbook,r.id == relbook.c.id,isouter=True)
                     )
+
             res = await session.execute(query)
             return res.mappings().all()

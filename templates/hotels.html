@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Бронирование</title>
+</head>
+
+
+<body>
+        {% for hotel in hotels %}
+    <div>
+            <div style="display:flex; margin-bottom: 10px;margin-left: 300px">
+                <img align="justify" src="{{ url_for('static',path='images/' +hotel.image_id|string + '.webp') }}" alt="Фото отеля" width="200">
+                <div><a href=""><h1>{{hotel.name}}</h1></a>
+                <h14>{{hotel.location}}</h14>
+                </div>
+            </div><hr>
+                {% endfor %}
+    </div>
+</body>
+
+
+</html>

@@ -1,45 +1,37 @@
-from dataclasses import dataclass
-from datetime import date
-from typing import Annotated, Optional
-
-from fastapi import FastAPI, Query, Depends
-from pydantic import BaseModel
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from bookings.router import router as router_bookings
+from config import settings
 from users.router import router as router_user
 from hotels.router import router as router_hotel
 from hotels.rooms.router import router as router_rooms
-app = FastAPI()
+from pages.router import router as router_pages
+from images.router import router as router_images
+from fastapi_cache import FastAPICache
+from contextlib import asynccontextmanager
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # при запуске
+    redis = aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}', encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="cache")
+    yield
+    # при выключении
+    print('Выключен')
+
+app = FastAPI(lifespan=lifespan)
+
+app.mount('/static', StaticFiles(directory='static'),'static')
 
 app.include_router(router_user)
 app.include_router(router_bookings)
 app.include_router(router_hotel)
 app.include_router(router_rooms)
-
-# class HotelsSearchArgs:
-#     def __init__(self,
-#                  location: str,
-#                  date_from: date,
-#                  date_to: date,
-#                  has_spa: bool = None,
-#                  stars: Annotated[int, Query(ge=1, le=5)] = None,
-#                  ):
-#         self.location = location
-#         self.date_from = date_from
-#         self.date_to = date_to
-#         self.has_spa = has_spa
-#         self.stars = stars
-######=============#########
-@dataclass
-class HotelsSearchArgs():
-    location: str
-    date_from: date
-    date_to: date
-    has_spa: bool = None
-    stars: Annotated[int, Query(ge=1, le=5)] = None
+app.include_router(router_pages)
+app.include_router(router_images)
 
 
 
-class SBooking(BaseModel):
-    room_id: int
-    date_from: date
-    date_to: date
