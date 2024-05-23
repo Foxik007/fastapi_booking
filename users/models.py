@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Date, Computed, VARCHAR
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from database import Base
 
@@ -9,3 +9,8 @@ class Users(Base):
     id:Mapped[int] = mapped_column(primary_key=True)
     email:Mapped[str]
     hashed_password :Mapped[str]
+
+    bookings: Mapped[list["Bookings"]] = relationship(back_populates="user")
+
+    def __str__(self):
+        return f'{self.email}'

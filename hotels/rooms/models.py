@@ -1,7 +1,8 @@
 from typing import Optional
 
 from sqlalchemy import Column,VARCHAR, Integer, String, JSON, ForeignKey, Date, Computed
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 
 from database import Base
 
@@ -17,3 +18,11 @@ class Rooms(Base):
     services: Mapped[Optional[list[str]]] = mapped_column(JSON)
     quantity: Mapped[int]
     image_id: Mapped[int]
+
+    hotel: Mapped["Hotels"] = relationship(back_populates="rooms")
+    bookings: Mapped[list["Bookings"]] = relationship(back_populates="room")
+
+
+    def __str__(self):
+        return f'Комната: {self.name}'
+

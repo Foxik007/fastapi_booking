@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Date, Computed
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column,relationship
 
 from database import Base
+
 
 
 class Bookings(Base):
@@ -16,5 +17,9 @@ class Bookings(Base):
     total_cost : Mapped[int] = mapped_column(Computed("(date_to-date_from) * price"))
     total_days : Mapped[int] = mapped_column(Computed('date_to - date_from'))
 
-    def __repr__(self):
-        return f'<Booking #{self.id}'
+    user: Mapped["Users"] = relationship(back_populates="bookings")
+    room: Mapped["Rooms"] = relationship(back_populates="bookings")
+
+
+    def __str__(self):
+        return f'Бронь № {self.id}'
