@@ -1,7 +1,7 @@
 from datetime import date
 
-from fastapi import APIRouter, Request, Depends
-from pydantic import parse_obj_as, TypeAdapter
+from fastapi import APIRouter, Depends, Request
+from pydantic import TypeAdapter, parse_obj_as
 from sqlalchemy import select
 
 from bookings.dao import BookingDAO

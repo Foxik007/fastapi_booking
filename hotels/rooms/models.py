@@ -1,8 +1,16 @@
 from typing import Optional
 
-from sqlalchemy import Column,VARCHAR, Integer, String, JSON, ForeignKey, Date, Computed
+from sqlalchemy import (
+    JSON,
+    VARCHAR,
+    Column,
+    Computed,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 
 from database import Base
 

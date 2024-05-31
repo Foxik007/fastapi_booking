@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:15
+    container_name: booking_db
+    env_file:
+      - .env-non-dev
+
+
+  redis:
+    image: redis:7
+    container_name: booking_redis
+
+
+  booking:
+    image: booking_image
+    build:
+      context: .
+    container_name: booking_app
+    env_file:
+      - .env-non-dev
+    depends_on:
+      - db
+      - redis
+    command: sh -c "uvicorn main:app --host=0.0.0.0 --reload --port 8000" && sh -c "alembic upgrade head"
+    ports:
+      - 7777:8000
+
+
+  celery:
+    image: booking_celery
+    build:
+      context: .
+    container_name: booking_celery
+    command: sh -c "celery --app=tasks.celery:celery worker -l INFO"
+    env_file:
+      - .env-non-dev
+    depends_on:
+      - redis

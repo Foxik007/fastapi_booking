@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 
 class BookingException(HTTPException):  # <-- наследуемся от HTTPException, который наследован от Exception
     status_code = 401  # <-- задаем значения по умолчанию
-    detail = ""
+    detail = "По умолчанию"
 
     def __init__(self):
         super().__init__(status_code=self.status_code, detail=self.detail)

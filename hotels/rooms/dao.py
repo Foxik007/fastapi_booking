@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
 
 from bookings.models import Bookings

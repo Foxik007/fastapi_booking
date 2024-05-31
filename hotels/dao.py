@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import insert, select, and_, func
+from sqlalchemy import and_, func, insert, select
 from sqlalchemy.orm import aliased
 
 from bookings.models import Bookings

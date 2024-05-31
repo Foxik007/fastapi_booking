@@ -1,5 +1,14 @@
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Date, Computed, VARCHAR
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy import (
+    JSON,
+    VARCHAR,
+    Column,
+    Computed,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 

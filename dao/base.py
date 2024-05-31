@@ -1,7 +1,7 @@
 
-from sqlalchemy import select, insert, delete
-from database import async_session_maker
+from sqlalchemy import delete, insert, select
 
+from database import async_session_maker
 
 
 class BaseDAO:

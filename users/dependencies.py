@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from fastapi import Request, HTTPException, Depends
-from jose import jwt, JWTError, ExpiredSignatureError
+from fastapi import Depends, HTTPException, Request
+from jose import ExpiredSignatureError, JWTError, jwt
 
 from config import settings
 from exception import TokenExpired

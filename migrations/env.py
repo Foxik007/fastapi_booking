@@ -1,11 +1,9 @@
 import sys
 from logging.config import fileConfig
-from os.path import dirname, abspath
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from os.path import abspath, dirname
 
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 sys.path.insert(0,dirname(dirname(abspath(__file__))))
 

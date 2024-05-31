@@ -1,12 +1,24 @@
-from os import environ
+from sqlalchemy import NullPool
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
 
-from sqlalchemy.ext.asyncio import AsyncSession,create_async_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from config import settings
 
-engine = create_async_engine(settings.DATABASE_URL)
+a = '================================================ '
 
-async_session_maker = sessionmaker(engine,class_=AsyncSession,expire_on_commit=False)
+if settings.MODE == "TEST":
+    print(a,'\n Используем тестовую базу \n', a)
+    DATABASE_URL = settings.TEST_DATABASE_URL
+    DATABASE_PARAMS = {"poolclass": NullPool}
+else:
+    DATABASE_URL = settings.DATABASE_URL
+    DATABASE_PARAMS = {}
+    print(a,'\n Используем боевую базу \n', a)
+
+engine = create_async_engine(DATABASE_URL, **DATABASE_PARAMS)
+
+# Во 2.0 версии Алхимии был добавлен async_sessionamaker.
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 class Base(DeclarativeBase):
     pass

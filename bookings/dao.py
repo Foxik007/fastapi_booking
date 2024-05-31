@@ -1,55 +1,57 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import aliased
+import os
+from datetime import date
 
+from fastapi import HTTPException
+from sqlalchemy import and_, delete, func, insert, select
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import aliased
+from fastapi_versioning import version
 from bookings.models import Bookings
 from dao.base import BaseDAO
 from database import async_session_maker, engine
 from exception import NotBookings
 from hotels.rooms.models import Rooms
+from logger import logger
 
-from datetime import date
-
-from sqlalchemy import and_, func, insert, select, delete
-
-
+@version(1)
 class BookingDAO(BaseDAO):
     model = Bookings
 
     @classmethod
-    async def find_by_user(cls,user_id):
+    async def find_by_user(cls, user_id):
         async with async_session_maker() as session:
             r = aliased(Rooms)
             b = aliased(Bookings)
 
-            query = (select(
-                b.id,
-                b.room_id,
-                b.user_id,
-                b.date_from,
-                b.date_to,
-                b.price,
-                b.total_cost,
-                b.total_days,
-                r.image_id,
-                r.name,
-                r.description,
-                r.services,
-            ).filter(b.user_id == user_id)
-                     .select_from(b)
-                     .join(r, b.room_id == r.id, isouter=True)
+            query = (
+                select(
+                    b.id,
+                    b.room_id,
+                    b.user_id,
+                    b.date_from,
+                    b.date_to,
+                    b.price,
+                    b.total_cost,
+                    b.total_days,
+                    r.image_id,
+                    r.name,
+                    r.description,
+                    r.services,
+                )
+                .filter(b.user_id == user_id)
+                .select_from(b)
+                .join(r, b.room_id == r.id, isouter=True)
             )
             result = await session.execute(query)
             return result.mappings().all()
 
-
-
     @classmethod
     async def add(
-            cls,
-            user_id: int,
-            room_id: int,
-            date_from: date,
-            date_to: date,
+        cls,
+        user_id: int,
+        room_id: int,
+        date_from: date,
+        date_to: date,
     ):
         """
         WITH booked_rooms AS (
@@ -65,7 +67,7 @@ class BookingDAO(BaseDAO):
         """
         try:
             async with async_session_maker() as session:
-                #ИЩЕМ ВСЕ ПЕРЕСЕКАЮЩИЕСЯ ДАТЫ В БАЗЕ ДАННЫХ И ВЫВОДИМ ИХ
+                # ИЩЕМ ВСЕ ПЕРЕСЕКАЮЩИЕСЯ ДАТЫ В БАЗЕ ДАННЫХ И ВЫВОДИМ ИХ
                 booked_rooms = (
                     select(Bookings)
                     .where(
@@ -79,7 +81,9 @@ class BookingDAO(BaseDAO):
                     )
                     .cte("booked_rooms")
                 )
-                print(booked_rooms.compile(engine, compile_kwargs={"literal_binds": True}))
+                print(
+                    booked_rooms.compile(engine, compile_kwargs={"literal_binds": True})
+                )
                 """
                 SELECT rooms.quantity - COUNT(booked_rooms.room_id) FROM rooms
                 LEFT JOIN booked_rooms ON booked_rooms.room_id = rooms.id
@@ -89,19 +93,24 @@ class BookingDAO(BaseDAO):
 
                 get_rooms_left = (
                     select(
-                        (Rooms.quantity - func.count(booked_rooms.c.room_id).filter(
-                            booked_rooms.c.room_id.is_not(None))).label(
-                            "rooms_left"
-                        )
+                        (
+                            Rooms.quantity
+                            - func.count(booked_rooms.c.room_id).filter(
+                                booked_rooms.c.room_id.is_not(None)
+                            )
+                        ).label("rooms_left")
                     )
                     .select_from(Rooms)
-                    .join(booked_rooms, booked_rooms.c.room_id == Rooms.id, isouter=True)
+                    .join(
+                        booked_rooms, booked_rooms.c.room_id == Rooms.id, isouter=True
+                    )
                     .where(Rooms.id == room_id)
                     .group_by(Rooms.quantity, booked_rooms.c.room_id)
                 )
 
                 # Рекомендую выводить SQL запрос в консоль для сверки
                 # logger.debug(get_rooms_left.compile(engine, compile_kwargs={"literal_binds": True}))
+
 
                 rooms_left = await session.execute(get_rooms_left)
                 rooms_left: int = rooms_left.scalar()
@@ -133,19 +142,29 @@ class BookingDAO(BaseDAO):
                     return new_booking.mappings().one()
                 else:
                     raise HTTPException(status_code=401)
-        except HTTPException:
-            raise HTTPException(status_code=401)
+        except (SQLAlchemyError,HTTPException) as e:
+            if isinstance(e,SQLAlchemyError):
+                msg = 'Database'
+            elif isinstance(e,HTTPException):
+                msg = 'Unknown'
+            msg += "Exc: Cannot add booking"
+            extra = {
+                "user_id":user_id,
+                "room_id":room_id,
+                "date_from":date_from,
+                "date_to":date_to
+            }
+            logger.error(msg,extra=extra,exc_info=True)
 
     @classmethod
-    async def delete(cls,**filter_by):
+    async def delete(cls, **filter_by):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(**filter_by)
-            result = await session.execute(query)
-            result: int = result.scalar()
-            if result == None:
+            result= await session.execute(query)
+            result= result.scalar()
+            if result is None:
                 raise NotBookings
             else:
                 query = delete(cls.model).filter_by(**filter_by)
                 await session.execute(query)
                 await session.commit()
-

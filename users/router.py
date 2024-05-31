@@ -1,9 +1,14 @@
 
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Depends, Response
 from fastapi_cache.decorator import cache
 
 from exception import UserAlreadyExistsException
-from users.auth import get_password_hash, verify_password, authenticate_user, create_access_token
+from users.auth import (
+    authenticate_user,
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
 from users.dao import UsersDAO
 from users.dependencies import get_current_user
 from users.models import Users
